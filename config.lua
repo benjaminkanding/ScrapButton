@@ -51,19 +51,14 @@ do
 
 	end)
 
-	--ilvl
+	--itemprint
 	ScrappinUI.checkbtn1 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
 	ScrappinUI.checkbtn1:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 40, -40)
-	ScrappinUI.checkbtn1.text:SetText("Don't insert items above equipped ilvl (*)")
-	ScrappinUI.checkbtn1.tooltip = "This does not read upgrades/bonuses to item level," ..
-									" quest items/warforging may differ in your bag than on the item base." ..
-									" Safety feature better used at high equipped ilvl."
-	ScrappinUI.checkbtn1:SetScript("OnEnter", function(self) ns.Config.ToolTipOnEnter(self) end)
-	ScrappinUI.checkbtn1:SetScript("OnLeave", function() ns.Config.ToolTipOnLeave() end)
+	ScrappinUI.checkbtn1.text:SetText("Print items inserted to chat")
 	ScrappinUI.checkbtn1:SetScript("OnClick", function(self) 
 		PlaySound(856)
-		ScrappinDB.CheckButtons.Itemlvl = self:GetChecked()
-		DebugPrint("btn1 value is now: " .. tostring(ScrappinDB.CheckButtons.Itemlvl))
+		ScrappinDB.CheckButtons.Itemprint = self:GetChecked()
+		DebugPrint("btn1 value is now: " .. tostring(ScrappinDB.CheckButtons.Itemprint))
 	end)
 
 	--bottom
@@ -76,15 +71,20 @@ do
 		DebugPrint("btn2 value is now: " .. tostring(ScrappinDB.CheckButtons.Bottom))
 	end)
 
-	--itemprint
+	--[[ilvl (taken out until fixed tooltipRead)
 	ScrappinUI.checkbtn3 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
 	ScrappinUI.checkbtn3:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 40, -100)
-	ScrappinUI.checkbtn3.text:SetText("Print items inserted to chat")
+	ScrappinUI.checkbtn3.text:SetText("Don't insert items above equipped ilvl (*)")
+	ScrappinUI.checkbtn3.tooltip = "This does not read upgrades/bonuses to item level," ..
+									" quest items/warforging may differ in your bag than on the item base." ..
+									" Safety feature better used at high equipped ilvl."
+	ScrappinUI.checkbtn3:SetScript("OnEnter", function(self) ns.Config.ToolTipOnEnter(self) end)
+	ScrappinUI.checkbtn3:SetScript("OnLeave", function() ns.Config.ToolTipOnLeave() end)
 	ScrappinUI.checkbtn3:SetScript("OnClick", function(self) 
 		PlaySound(856)
-		ScrappinDB.CheckButtons.Itemprint = self:GetChecked()
-		DebugPrint("btn3 value is now: " .. tostring(ScrappinDB.CheckButtons.Itemprint))
-	end)
+		ScrappinDB.CheckButtons.Itemlvl = self:GetChecked()
+		DebugPrint("btn3 value is now: " .. tostring(ScrappinDB.CheckButtons.Itemlvl))
+	end) --]]
 
 	-- Bags
 	ScrappinUI.checkbag0 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
@@ -137,8 +137,8 @@ end
 
 -- should just take in self argument instead maybe later :)
 function Config:ToolTipOnEnter()
-	GameTooltip:SetOwner(ScrappinUI.checkbtn1, "ANCHOR_RIGHT")
-	GameTooltip:SetText(ScrappinUI.checkbtn1.tooltip, nil, nil, nil, nil, true)
+	GameTooltip:SetOwner(ScrappinUI.checkbtn3, "ANCHOR_RIGHT")
+	GameTooltip:SetText(ScrappinUI.checkbtn3.tooltip, nil, nil, nil, nil, true)
 	GameTooltip:Show()
 end
 
@@ -147,9 +147,9 @@ function Config:ToolTipOnLeave()
 end
 
 function Config:UpdateCheckButtonStates()
-	ScrappinUI.checkbtn1:SetChecked(ScrappinDB.CheckButtons.Itemlvl)
+	ScrappinUI.checkbtn1:SetChecked(ScrappinDB.CheckButtons.Itemprint)
 	ScrappinUI.checkbtn2:SetChecked(ScrappinDB.CheckButtons.Bottom)
-	ScrappinUI.checkbtn3:SetChecked(ScrappinDB.CheckButtons.Itemprint)
+	--ScrappinUI.checkbtn3:SetChecked(ScrappinDB.CheckButtons.Itemlvl)
 	ScrappinUI.debugbtn:SetChecked(ScrappinDB.CheckButtons.Debug)
 	ScrappinUI.checkbag0:SetChecked(ScrappinDB.CheckButtons.Bag[0])
 	ScrappinUI.checkbag1:SetChecked(ScrappinDB.CheckButtons.Bag[1])

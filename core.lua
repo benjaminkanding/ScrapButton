@@ -22,7 +22,7 @@ end
 
 local function ItemPrint(text)
 	if (ScrappinDB.CheckButtons.Itemprint) then
-		print(string.format("|c%sScrap:|r: Inserting %s", ns.Config.color, text))
+		print(string.format("|c%sScrap|r: Inserting %s", ns.Config.color, text))
 	end
 end
 
@@ -42,7 +42,7 @@ end
 ---------------------------------------------------
 local function IsScrappable(itemString)
 	local tooltipReader = CreateFrame("GameTooltip", "moetQOL_TooltipReader", nil, "GameToolTipTemplate")
-	tooltipReader:SetOwner(WorldFrame, "ANCHOR_NONE") -- put tooltipreader outside?
+	tooltipReader:SetOwner(WorldFrame, "ANCHOR_NONE")
 
 	-- add check here if you want to blacklist items
 
@@ -86,15 +86,11 @@ local function InsertScrapItems()
 		if (not IsBagBlacklisted(bag)) then
 			for slot = 1, GetContainerNumSlots(bag) do
 				local item = GetContainerItemLink(bag, slot)
-				if (item) then
-					local itemlvl = select(4, GetItemInfo(item))
-					DebugPrint("Item level read as " .. itemlvl .. " on " .. item)
-					if (ItemLvlLessThanEquipped(equipped, itemlvl)) then
-						if (IsScrappable(item)) then
-							DebugPrint("Inserting " .. item)
-							ItemPrint(item)
-							UseContainerItem(bag, slot)
-						end
+				if (item ~= nil) then
+					if (IsScrappable(item)) then
+						DebugPrint("Inserting " .. item)
+						ItemPrint(item)
+						UseContainerItem(bag, slot)
 					end
 				end
 			end

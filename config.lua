@@ -1,8 +1,6 @@
 ---------------------------------------------------
 -- SETUP
--- TODO:
--- cleanup
--- fix itemlevel thing or remove it
+-- remove cooldown option?
 ---------------------------------------------------
 local _, ns		= ... -- namespace
 ns.Config		= {} -- add config to the namespace
@@ -21,7 +19,7 @@ do
 	ScrappinUI:SetPoint("CENTER")
 	ScrappinUI.title = ScrappinUI:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	ScrappinUI.title:SetPoint("CENTER", ScrappinUI_FrameTopBorder, "CENTER")
-	ScrappinUI.title:SetText("Scrappin Config")
+	ScrappinUI.title:SetText("Scrap Button Config")
 	ScrappinUI:SetMovable(true)
 	ScrappinUI:EnableMouse(true)
 	ScrappinUI:RegisterForDrag("LeftButton")
@@ -31,19 +29,20 @@ do
 	--Text
 	ScrappinUI.dev = ScrappinUI:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	ScrappinUI.dev:SetPoint("CENTER", ScrappinUI_Frame, "BOTTOM", 0, 40)
-	ScrappinUI.dev:SetText(string.format("Version: |c%s%s|r - more filters coming soon.", ns.Config.color, GetAddOnMetadata("Scrappin", "Version")))
+	ScrappinUI.dev:SetText(string.format("Version: |c%s%s|r", ns.Config.color, GetAddOnMetadata("ScrapButton", "Version")))
 
 	ScrappinUI.bagHeader = ScrappinUI:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	ScrappinUI.bagHeader:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 85, -130)
 	ScrappinUI.bagHeader:SetText("Tick to ignore bags:")
 
-	--Buttons
+	--Exit Button
 	ScrappinUI.exitbtn = CreateFrame("Button", "ScrappinUI_CloseButton", ScrappinUI_Frame, "UIPanelCloseButton")
 	ScrappinUI.exitbtn:SetPoint("CENTER", ScrappinUI_FrameTopRightCorner, "CENTER", -5, -5)
 	ScrappinUI.exitbtn:SetScript("OnClick", function() Config.ToggleScrappinFrame() end)
 
+	--CheckButtons
 	ScrappinUI.debugbtn = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
-	ScrappinUI.debugbtn:SetPoint("CENTER", ScrappinUI_Frame, "BOTTOMRIGHT", -100, 40)
+	ScrappinUI.debugbtn:SetPoint("CENTER", ScrappinUI_Frame, "BOTTOMRIGHT", -100, 30)
 	ScrappinUI.debugbtn.text:SetText("Debug mode")
 	ScrappinUI.debugbtn:SetScript("OnClick", function(self)
 		PlaySound(856)
@@ -52,15 +51,22 @@ do
 
 	end)
 
+	--ilvl
 	ScrappinUI.checkbtn1 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
 	ScrappinUI.checkbtn1:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 40, -40)
 	ScrappinUI.checkbtn1.text:SetText("Don't insert items above equipped ilvl (*)")
+	ScrappinUI.checkbtn1.tooltip = "This does not read upgrades/bonuses to item level," ..
+									" quest items/warforging may differ in your bag than on the item base." ..
+									" Safety feature better used at high equipped ilvl."
+	ScrappinUI.checkbtn1:SetScript("OnEnter", function(self) ns.Config.ToolTipOnEnter(self) end)
+	ScrappinUI.checkbtn1:SetScript("OnLeave", function() ns.Config.ToolTipOnLeave() end)
 	ScrappinUI.checkbtn1:SetScript("OnClick", function(self) 
 		PlaySound(856)
 		ScrappinDB.CheckButtons.Itemlvl = self:GetChecked()
 		DebugPrint("btn1 value is now: " .. tostring(ScrappinDB.CheckButtons.Itemlvl))
 	end)
 
+	--bottom
 	ScrappinUI.checkbtn2 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
 	ScrappinUI.checkbtn2:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 40, -70)
 	ScrappinUI.checkbtn2.text:SetText("Place scrap button at the bottom (/reload)")
@@ -70,6 +76,7 @@ do
 		DebugPrint("btn2 value is now: " .. tostring(ScrappinDB.CheckButtons.Bottom))
 	end)
 
+	--itemprint
 	ScrappinUI.checkbtn3 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
 	ScrappinUI.checkbtn3:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 40, -100)
 	ScrappinUI.checkbtn3.text:SetText("Print items inserted to chat")
@@ -79,7 +86,7 @@ do
 		DebugPrint("btn3 value is now: " .. tostring(ScrappinDB.CheckButtons.Itemprint))
 	end)
 
-	-- bags
+	-- Bags
 	ScrappinUI.checkbag0 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
 	ScrappinUI.checkbag0:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 40, -160)
 	ScrappinUI.checkbag0.text:SetText("Backpack")
@@ -128,6 +135,17 @@ do
 	ScrappinUI:Hide()
 end
 
+-- should just take in self argument instead maybe later :)
+function Config:ToolTipOnEnter()
+	GameTooltip:SetOwner(ScrappinUI.checkbtn1, "ANCHOR_RIGHT")
+	GameTooltip:SetText(ScrappinUI.checkbtn1.tooltip, nil, nil, nil, nil, true)
+	GameTooltip:Show()
+end
+
+function Config:ToolTipOnLeave()
+	GameTooltip:Hide()
+end
+
 function Config:UpdateCheckButtonStates()
 	ScrappinUI.checkbtn1:SetChecked(ScrappinDB.CheckButtons.Itemlvl)
 	ScrappinUI.checkbtn2:SetChecked(ScrappinDB.CheckButtons.Bottom)
@@ -139,11 +157,6 @@ function Config:UpdateCheckButtonStates()
 	ScrappinUI.checkbag3:SetChecked(ScrappinDB.CheckButtons.Bag[3])
 	ScrappinUI.checkbag4:SetChecked(ScrappinDB.CheckButtons.Bag[4])
 end
-
---possibly updatesVariables call function to avoid /reload?
--- if checkbtn1 == true then
---	set variables/callfunctions
---
 
 function Config:ToggleScrappinFrame()
 	ScrappinUI:SetShown(not ScrappinUI:IsShown())

@@ -1,11 +1,13 @@
 ---------------------------------------------------
--- Addon by moet-al'akir
 -- SETUP
 ---------------------------------------------------
 local _, ns		= ... -- namespace
 ns.Core			= {} -- add the core to the namespace
 local Core		= ns.Core
 
+---------------------------------------------------
+-- HELPER FUNCTIONS
+---------------------------------------------------
 local function IsBagBlacklisted(int)
 	return ScrappinDB.CheckButtons.Bag[int]
 end
@@ -20,16 +22,27 @@ end
 
 local function ItemPrint(text)
 	if (ScrappinDB.CheckButtons.Itemprint) then
-		print(string.format("|c%sScrappin:|r: Inserting %s", ns.Config.color, text))
+		print(string.format("|c%sScrap:|r: Inserting %s", ns.Config.color, text))
+	end
+end
+
+local function PositionScrapButton(self)
+	if (ScrappinDB.CheckButtons.Bottom) then
+		self:ClearAllPoints()
+		self:SetPoint("CENTER", ScrappingMachineFrame, "BOTTOM", 0, 42)
+	else
+		self:ClearAllPoints()
+		self:SetPoint("CENTER", ScrappingMachineFrame, "TOP", 0, -45)
 	end
 end
 
 ---------------------------------------------------
 -- SCRAPPING FUNCTIONS
+-- free reuse with credit :o)
 ---------------------------------------------------
 local function IsScrappable(itemString)
 	local tooltipReader = CreateFrame("GameTooltip", "moetQOL_TooltipReader", nil, "GameToolTipTemplate")
-	tooltipReader:SetOwner(WorldFrame, "ANCHOR_NONE")
+	tooltipReader:SetOwner(WorldFrame, "ANCHOR_NONE") -- put tooltipreader outside?
 
 	-- add check here if you want to blacklist items
 
@@ -75,7 +88,7 @@ local function InsertScrapItems()
 				local item = GetContainerItemLink(bag, slot)
 				if (item) then
 					local itemlvl = select(4, GetItemInfo(item))
-					DebugPrint(itemlvl .. item)
+					DebugPrint("Item level read as " .. itemlvl .. " on " .. item)
 					if (ItemLvlLessThanEquipped(equipped, itemlvl)) then
 						if (IsScrappable(item)) then
 							DebugPrint("Inserting " .. item)
@@ -86,16 +99,6 @@ local function InsertScrapItems()
 				end
 			end
 		end
-	end
-end
-
-local function PositionScrapButton(self)
-	if (ScrappinDB.CheckButtons.Bottom) then
-		self:ClearAllPoints()
-		self:SetPoint("CENTER", ScrappingMachineFrame, "BOTTOM", 0, 42)
-	else
-		self:ClearAllPoints()
-		self:SetPoint("CENTER", ScrappingMachineFrame, "TOP", 0, -45)
 	end
 end
 
@@ -114,14 +117,14 @@ function Core:CreateScrapButton()
 		if duration ~= 0 then return end
 
 		if (UnitCastingInfo("player") ~= nil) then
-			print(string.format("|c%sScrappin|r: You cannot insert items while actively scrapping, cancel your cast to refill.", ns.Config.color))
+			print(string.format("|c%sScrap|r: You cannot insert items while actively scrapping, cancel your cast to refill.", ns.Config.color))
 			return
 		end
 
 		scrapCooldown:SetCooldown(GetTime(), 1)
 		if (C_ScrappingMachineUI.HasScrappableItems()) then
 			C_ScrappingMachineUI.RemoveAllScrapItems()
-			print(string.format("|c%sScrappin|r: Refilling..", ns.Config.color))
+			print(string.format("|c%sScrap|r: Refilling..", ns.Config.color))
 			InsertScrapItems()
 			PlaySound(73919) -- UI_PROFESSIONS_NEW_RECIPE_LEARNED_TOAST
 			return

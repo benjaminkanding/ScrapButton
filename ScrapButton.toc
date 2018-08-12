@@ -3,10 +3,9 @@
 ## Title: ScrapButton
 ## Author: moet
 
-## Version: 1.0
-## Notes: Adds a button to fill scrapping machine.
+## Version: 1.5
+## Notes: Adds a button to fill scrapping machine. ALL DAY IN THE SCRAP HOUSE
 ## SavedVariables: ScrappinDB
-
 
 config.lua
 core.lua

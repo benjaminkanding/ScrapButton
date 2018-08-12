@@ -34,6 +34,9 @@ end
 -- DATABASE FUNCTIONS
 ---------------------------------------------------
 -- todo: implement so we dont lose settings
+-- check for nil with 2 input (scrapDB, defaultDB)
+-- recursive call (scrapDB.child, defaultDB.child)
+-- access modifiers
 local function CheckDatabaseVersion()
 	if ScrappinDB.DBversion ~= defaultDB.DBversion then
 		ScrappinDB = defaultDB

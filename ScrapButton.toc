@@ -4,7 +4,7 @@
 ## Author: moet
 
 ## Version: 1.5
-## Notes: Adds a button to fill scrapping machine. ALL DAY IN THE SCRAP HOUSE
+## Notes: Adds a button to fill scrapping machine.
 ## SavedVariables: ScrappinDB
 
 config.lua

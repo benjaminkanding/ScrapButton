@@ -48,8 +48,8 @@ local function CreateEmptyTooltip()
 	return tip
 end
 
-local function ItemLvlLessThanEquipped(equipped, item)
-	if (not ScrappinDB.CheckButtons.Itemlvl) then
+local function GetItemLvl(item)
+	if (not ScrappinDB.CheckButtons.Itemlvl and not ScrappinDB.CheckButtons.specificilvl) then
 		return true
 	end
 
@@ -82,47 +82,93 @@ local function ItemLvlLessThanEquipped(equipped, item)
 	end
 
 	itemlvl = tonumber(itemlvl)
+ 
+	return itemlvl
+end
 
-	DebugPrint("Comparing that " .. tostring(itemlvl) .. " is less than " .. tostring(equipped) .. " = " .. tostring(itemlvl < equipped))
-	return itemlvl < equipped
+local function ItemLvlComparison(equipped, itemlvl)
+	if (not ScrappinDB.CheckButtons.Itemlvl and not ScrappinDB.CheckButtons.specificilvl) then
+		return true
+	end
+
+	local ItemLvlLessThanEquip = false
+	local ItemLvlNotHigherThanSpecific = false
+	
+	if ScrappinDB.CheckButtons.specificilvl then
+		if type(ScrappinDB.specificilvlbox) == "number" then
+			DebugPrint("Comparing that " .. tostring(itemlvl) .. " is less than " .. tostring(ScrappinDB.specificilvlbox) .. " = " .. tostring(itemlvl < ScrappinDB.specificilvlbox))
+			ItemLvlNotHigherThanSpecific = itemlvl < ScrappinDB.specificilvlbox
+		end
+	end
+
+	if ScrappinDB.CheckButtons.Itemlvl then
+		DebugPrint("Comparing that " .. tostring(itemlvl) .. " is less than " .. tostring(equipped) .. " = " .. tostring(itemlvl < equipped))
+		ItemLvlLessThanEquip = itemlvl < equipped
+	end
+	
+	--returns
+	if ScrappinDB.CheckButtons.Itemlvl and ScrappinDB.CheckButtons.specificilvl then
+		if ItemLvlLessThanEquip and ItemLvlNotHigherThanSpecific then
+			return true
+		else
+			return false
+		end
+	elseif ScrappinDB.CheckButtons.Itemlvl then
+		return ItemLvlLessThanEquip
+	elseif ScrappinDB.CheckButtons.specificilvl then
+		return ItemLvlNotHigherThanSpecific
+	end
 end
 
 
 ---------------------------------------------------
 -- SCRAPPING FUNCTIONS
--- free reuse with credit :o)
 ---------------------------------------------------
 local function IsScrappable(itemString)
 	local tooltipReader = tooltipReader or CreateEmptyTooltip()
 	tooltipReader:SetOwner(WorldFrame, "ANCHOR_NONE")
 	tooltipReader:ClearLines()
+	local scrappable = false
+	local boe = false
 
 	if (itemString ~= nil) then
 		tooltipReader:SetHyperlink(itemString)
 		DebugPrint(itemString .. " has lines: " .. tooltipReader:NumLines())
 		for i = tooltipReader:NumLines(), 1, -1 do
 			local line = tooltipReader.leftside[i]:GetText()
-			if (line ~= nil) then
-				if line == "Cannot be Scrapped" then
-					return false
-				elseif line == "Scrappable" then
-					return true
+			if line ~= nil then
+				if line == "Scrappable" then
+					scrappable = true
 				end
 			end
 		end
 
-		tooltipReader:Hide()
+		if (ScrappinDB.CheckButtons.boe) then
+			local boe = false
+			for i = 2, 4 do
+				local t = tooltipReader.leftside[i]:GetText()
+				if t and t == "Binds when equipped" then
+					DebugPrint("Found BoE: " .. itemString)
+					boe = true
+				end
+			end
+			return scrappable, boe
+		end
 	end
+	
+	return scrappable, false
 end
 
 local function InsertScrapItems()
 	local _, equipped = GetAverageItemLevel()
 	for bag = 0, 4 do
-		if (not IsBagBlacklisted(bag)) then
+		if not IsBagBlacklisted(bag) then
 			for slot = 1, GetContainerNumSlots(bag) do
 				local item = GetContainerItemLink(bag, slot)
-				if (item ~= nil) then
-					if (IsScrappable(item) and ItemLvlLessThanEquipped(equipped, item)) then
+				if item ~= nil then
+					local scrappable, boe = IsScrappable(item)
+					local itemlvl = GetItemLvl(item)
+					if (scrappable and not boe and ItemLvlComparison(equipped, itemlvl)) then
 						ItemPrint(item)
 						UseContainerItem(bag, slot)
 					end
@@ -151,10 +197,9 @@ function Core:CreateScrapButton()
 			return
 		end
 
-		scrapCooldown:SetCooldown(GetTime(), 1)
+		scrapCooldown:SetCooldown(GetTime(), 0.5)
 		if (C_ScrappingMachineUI.HasScrappableItems()) then
 			C_ScrappingMachineUI.RemoveAllScrapItems()
-			print(string.format("|c%sScrap|r: Refilling..", ns.Config.color))
 			InsertScrapItems()
 			PlaySound(73919) -- UI_PROFESSIONS_NEW_RECIPE_LEARNED_TOAST
 			return

@@ -3,7 +3,7 @@
 ## Title: ScrapButton
 ## Author: moet
 
-## Version: 1.5
+## Version: 1.8
 ## Notes: Adds a button to fill scrapping machine.
 ## SavedVariables: ScrappinDB
 

@@ -17,6 +17,7 @@ local defaultDB = {
 		Itemprint = false,
 		boe = false,
 		specificilvl = false,
+		equipmentsets = false,
 		Bag = {
 			[0] = false,
 			[1] = false,

@@ -12,9 +12,9 @@ local function IsBagBlacklisted(int)
 	return ScrappinDB.CheckButtons.Bag[int]
 end
 
-local function ItemPrint(text)
+local function ItemPrint(text, ...)
 	if (ScrappinDB.CheckButtons.Itemprint) then
-		print(string.format("|c%sScrap:|r: Inserting %s", ns.Config.color, text))
+		print(string.format("|c%sScrap:|r: Inserting %s (%s)", ns.Config.color, text, ...))
 	end
 end
 
@@ -120,6 +120,15 @@ local function ItemLvlComparison(equipped, itemlvl)
 	end
 end
 
+local function IsPartOfEquipmentSet(bag, slot)
+	if ScrappinDB.CheckButtons.equipmentsets then
+		local isInSet, _ = GetContainerItemEquipmentSetInfo(bag, slot)
+		return isInSet
+	else
+		return false
+	end
+end
+
 
 ---------------------------------------------------
 -- SCRAPPING FUNCTIONS
@@ -168,8 +177,9 @@ local function InsertScrapItems()
 				if item ~= nil then
 					local scrappable, boe = IsScrappable(item)
 					local itemlvl = GetItemLvl(item)
-					if (scrappable and not boe and ItemLvlComparison(equipped, itemlvl)) then
-						ItemPrint(item)
+					local PartOfSet = IsPartOfEquipmentSet(bag, slot)
+					if (scrappable and not boe and not PartOfSet and ItemLvlComparison(equipped, itemlvl)) then
+						ItemPrint(item, itemlvl)
 						UseContainerItem(bag, slot)
 					end
 				end
@@ -185,7 +195,7 @@ function Core:CreateScrapButton()
 	scrapButton:SetText("Insert Scrap")
 
 	local scrapCooldown = CreateFrame("Cooldown", "scrapButtonAntiSpam", scrapButton, "CooldownFrameTemplate")
-	scrapCooldown:SetAllPoints() -- sized exactly same as scrapButton
+	scrapCooldown:SetAllPoints()
 
 	scrapButton:SetScript("OnClick", function() 
 		local duration = scrapCooldown:GetCooldownDuration()
@@ -198,13 +208,6 @@ function Core:CreateScrapButton()
 		end
 
 		scrapCooldown:SetCooldown(GetTime(), 0.5)
-		if (C_ScrappingMachineUI.HasScrappableItems()) then
-			C_ScrappingMachineUI.RemoveAllScrapItems()
-			InsertScrapItems()
-			PlaySound(73919) -- UI_PROFESSIONS_NEW_RECIPE_LEARNED_TOAST
-			return
-		end
-
 		PlaySound(73919) -- UI_PROFESSIONS_NEW_RECIPE_LEARNED_TOAST
 		InsertScrapItems()
 	end)

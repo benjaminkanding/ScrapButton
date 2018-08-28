@@ -1,5 +1,8 @@
 ---------------------------------------------------
 -- SETUP
+-- TODO:
+-- Ignore items in equipment sets
+-- Azerite Armor filter?
 ---------------------------------------------------
 local _, ns		= ... -- namespace
 ns.Config		= {} -- add config to the namespace
@@ -88,7 +91,12 @@ do
 	ScrappinUI.editbox:SetAutoFocus(false)
 	ScrappinUI.editbox:SetNumeric(true)
 	ScrappinUI.editbox:SetMaxLetters(3)
+
 	ScrappinUI.editbox:SetScript("OnEnterPressed", function(self)
+		self:ClearFocus()
+	end)
+
+	ScrappinUI.editbox:SetScript("OnEditFocusLost", function(self)
 		self:ClearFocus()
 		ScrappinDB.specificilvlbox = self:GetNumber()
 	end)
@@ -113,6 +121,16 @@ do
 		end
 		ScrappinDB.CheckButtons.specificilvl = self:GetChecked()
 		DebugPrint("btn5 value is now: " .. tostring(ScrappinDB.CheckButtons.specificilvl))
+	end)
+
+	--Equipment sets
+	ScrappinUI.checkbtn6 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
+	ScrappinUI.checkbtn6:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 340, -70)
+	ScrappinUI.checkbtn6.text:SetText("Ignore items in equipment sets")
+	ScrappinUI.checkbtn6:SetScript("OnClick", function(self)
+		PlaySound(856)
+		ScrappinDB.CheckButtons.equipmentsets = self:GetChecked()
+		DebugPrint("btn6 value is now: " .. tostring(ScrappinDB.CheckButtons.equipmentsets))
 	end)
 
 	-- Bags
@@ -170,6 +188,7 @@ function Config:UpdateCheckButtonStates()
 	ScrappinUI.checkbtn3:SetChecked(ScrappinDB.CheckButtons.Itemprint)
 	ScrappinUI.checkbtn4:SetChecked(ScrappinDB.CheckButtons.boe)
 	ScrappinUI.checkbtn5:SetChecked(ScrappinDB.CheckButtons.specificilvl)
+	ScrappinUI.checkbtn6:SetChecked(ScrappinDB.CheckButtons.equipmentsets)
 	ScrappinUI.checkbag0:SetChecked(ScrappinDB.CheckButtons.Bag[0])
 	ScrappinUI.checkbag1:SetChecked(ScrappinDB.CheckButtons.Bag[1])
 	ScrappinUI.checkbag2:SetChecked(ScrappinDB.CheckButtons.Bag[2])

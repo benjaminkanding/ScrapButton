@@ -133,6 +133,16 @@ do
 		DebugPrint("btn6 value is now: " .. tostring(ScrappinDB.CheckButtons.equipmentsets))
 	end)
 
+	--Azerite Item
+	ScrappinUI.checkbtn7 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
+	ScrappinUI.checkbtn7:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 340, -100)
+	ScrappinUI.checkbtn7.text:SetText("Ignore Azerite Items")
+	ScrappinUI.checkbtn7:SetScript("OnClick", function(self)
+		PlaySound(856)
+		ScrappinDB.CheckButtons.azerite = self:GetChecked()
+		DebugPrint("btn7 value is now: " .. tostring(ScrappinDB.CheckButtons.azerite))
+	end)
+
 	-- Bags
 	ScrappinUI.checkbag0 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
 	ScrappinUI.checkbag0:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 40, -190)
@@ -189,6 +199,7 @@ function Config:UpdateCheckButtonStates()
 	ScrappinUI.checkbtn4:SetChecked(ScrappinDB.CheckButtons.boe)
 	ScrappinUI.checkbtn5:SetChecked(ScrappinDB.CheckButtons.specificilvl)
 	ScrappinUI.checkbtn6:SetChecked(ScrappinDB.CheckButtons.equipmentsets)
+	ScrappinUI.checkbtn7:SetChecked(ScrappinDB.CheckButtons.azerite)
 	ScrappinUI.checkbag0:SetChecked(ScrappinDB.CheckButtons.Bag[0])
 	ScrappinUI.checkbag1:SetChecked(ScrappinDB.CheckButtons.Bag[1])
 	ScrappinUI.checkbag2:SetChecked(ScrappinDB.CheckButtons.Bag[2])

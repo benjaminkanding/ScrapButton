@@ -5,8 +5,6 @@ local _, ns			= ... -- namespace
 local shortcut		= "/scrap"
 local addonVersion	= GetAddOnMetadata("ScrapButton", "Version")
 local welcomeMSG	= string.format("|c%sScrapButton|r loaded v%s.", ns.Config.color, addonVersion)
-
--- 
 local defaultDB = {
 	DBversion = 5,
 	Debug = false,
@@ -18,6 +16,7 @@ local defaultDB = {
 		boe = false,
 		specificilvl = false,
 		equipmentsets = false,
+		azerite = false,
 		Bag = {
 			[0] = false,
 			[1] = false,

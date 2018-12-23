@@ -1,9 +1,10 @@
 ---------------------------------------------------
 -- SETUP
 ---------------------------------------------------
-local _, ns		= ... -- namespace
-ns.Core			= {} -- add the core to the namespace
-local Core		= ns.Core
+local _, ns	= ... -- namespace
+ns.Core	= {} -- add the core to the namespace
+local Core = ns.Core
+local itemLocation = itemLocation or ItemLocation:CreateEmpty()
 
 ---------------------------------------------------
 -- HELPER FUNCTIONS
@@ -48,64 +49,20 @@ local function CreateEmptyTooltip()
 	return tip
 end
 
-local function GetItemLvl(item)
-	if (not ScrappinDB.CheckButtons.Itemlvl and not ScrappinDB.CheckButtons.specificilvl) then
-		return true
-	end
-
-	local itemlvl = nil
-	local PLH_ITEM_LEVEL_PATTERN = _G.ITEM_LEVEL:gsub('%%d', '(%%d+)')
-	if item ~= nil then
-		tooltip = tooltip or CreateEmptyTooltip()
-		tooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
-		tooltip:ClearLines()
-		tooltip:SetHyperlink(item)
-		local t = tooltip.leftside[2]:GetText()
-		if t ~= nil then
-			itemlvl = t:match(PLH_ITEM_LEVEL_PATTERN)
-		end
-		if itemlvl == nil then
-			t = tooltip.leftside[3]:GetText()
-			if t ~= nil then
-				itemlvl = t:match(PLH_ITEM_LEVEL_PATTERN)
-			end
-		end
-		tooltip:Hide()
-		
-		if itemlvl == nil then
-			itemlvl = select(4, GetItemInfo(item))
-		end
-	end
-	
-	if itemlvl == nil then
-		itemlvl = 0
-	end
-
-	itemlvl = tonumber(itemlvl)
- 
-	return itemlvl
-end
-
 local function ItemLvlComparison(equipped, itemlvl)
 	if (not ScrappinDB.CheckButtons.Itemlvl and not ScrappinDB.CheckButtons.specificilvl) then
 		return true
 	end
+	DebugPrint("Comparing Itemlvl: " .. tostring(itemlvl) .. " equipped: " .. tostring(equipped) .. " specific: " .. tostring(ScrappinDB.specificilvlbox))
 
-	local ItemLvlLessThanEquip = false
-	local ItemLvlNotHigherThanSpecific = false
-	
-	if ScrappinDB.CheckButtons.specificilvl then
-		if type(ScrappinDB.specificilvlbox) == "number" then
-			DebugPrint("Comparing that " .. tostring(itemlvl) .. " is less than " .. tostring(ScrappinDB.specificilvlbox) .. " = " .. tostring(itemlvl < ScrappinDB.specificilvlbox))
-			ItemLvlNotHigherThanSpecific = itemlvl < ScrappinDB.specificilvlbox
-		end
-	end
-
-	if ScrappinDB.CheckButtons.Itemlvl then
-		DebugPrint("Comparing that " .. tostring(itemlvl) .. " is less than " .. tostring(equipped) .. " = " .. tostring(itemlvl < equipped))
+	local ItemLvlLessThanEquip, ItemLvlNotHigherThanSpecific = false
+	if itemlvl and equipped then
 		ItemLvlLessThanEquip = itemlvl < equipped
 	end
-	
+	if itemlvl and ScrappinDB.specificilvlbox then
+		ItemLvlNotHigherThanSpecific = itemlvl < ScrappinDB.specificilvlbox
+	end
+
 	--returns
 	if ScrappinDB.CheckButtons.Itemlvl and ScrappinDB.CheckButtons.specificilvl then
 		if ItemLvlLessThanEquip and ItemLvlNotHigherThanSpecific then
@@ -129,11 +86,19 @@ local function IsPartOfEquipmentSet(bag, slot)
 	end
 end
 
+local function IsAzeriteItem(itemLocation)
+	if ScrappinDB.CheckButtons.azerite then
+		local isAzerite = C_AzeriteEmpoweredItem.IsAzeriteEmpoweredItem(itemLocation)
+		return isAzerite
+	end
+	return false
+end
+
 
 ---------------------------------------------------
 -- SCRAPPING FUNCTIONS
 ---------------------------------------------------
-local function IsScrappable(itemString)
+local function ReadTooltip(itemString)
 	local tooltipReader = tooltipReader or CreateEmptyTooltip()
 	tooltipReader:SetOwner(WorldFrame, "ANCHOR_NONE")
 	tooltipReader:ClearLines()
@@ -142,13 +107,10 @@ local function IsScrappable(itemString)
 
 	if (itemString ~= nil) then
 		tooltipReader:SetHyperlink(itemString)
-		DebugPrint(itemString .. " has lines: " .. tooltipReader:NumLines())
 		for i = tooltipReader:NumLines(), 1, -1 do
 			local line = tooltipReader.leftside[i]:GetText()
-			if line ~= nil then
-				if line == "Scrappable" then
-					scrappable = true
-				end
+			if line and line == "Scrappable" then
+				scrappable = true
 			end
 		end
 
@@ -175,10 +137,13 @@ local function InsertScrapItems()
 			for slot = 1, GetContainerNumSlots(bag) do
 				local item = GetContainerItemLink(bag, slot)
 				if item ~= nil then
-					local scrappable, boe = IsScrappable(item)
-					local itemlvl = GetItemLvl(item)
-					local PartOfSet = IsPartOfEquipmentSet(bag, slot)
-					if (scrappable and not boe and not PartOfSet and ItemLvlComparison(equipped, itemlvl)) then
+					itemLocation:SetBagAndSlot(bag, slot)
+					local azerite_item = IsAzeriteItem(itemLocation)
+					local scrappable, boe = ReadTooltip(item)
+					local itemlvl, _, _ = GetDetailedItemLevelInfo(item) or 0
+					local part_of_set = IsPartOfEquipmentSet(bag, slot)
+					local itemCompare = ItemLvlComparison(equipped, itemlvl)
+					if (scrappable and itemCompare and not boe and not part_of_set and not azerite_item) then
 						ItemPrint(item, itemlvl)
 						UseContainerItem(bag, slot)
 					end
@@ -193,13 +158,12 @@ function Core:CreateScrapButton()
 	local scrapButton = CreateFrame("Button", "moetQOL_ScrapButton", ScrappingMachineFrame, "OptionsButtonTemplate")
 	PositionScrapButton(scrapButton)
 	scrapButton:SetText("Insert Scrap")
-
-	local scrapCooldown = CreateFrame("Cooldown", "scrapButtonAntiSpam", scrapButton, "CooldownFrameTemplate")
+	
+	local scrapCooldown = CreateFrame("Cooldown", "scrapButtonAntiSpam", scrapButton)
 	scrapCooldown:SetAllPoints()
 
 	scrapButton:SetScript("OnClick", function() 
 		local duration = scrapCooldown:GetCooldownDuration()
-
 		if duration ~= 0 then return end
 
 		if (UnitCastingInfo("player") ~= nil) then
@@ -207,8 +171,9 @@ function Core:CreateScrapButton()
 			return
 		end
 
-		scrapCooldown:SetCooldown(GetTime(), 0.5)
+		scrapCooldown:SetCooldown(GetTime(), 1)
 		PlaySound(73919) -- UI_PROFESSIONS_NEW_RECIPE_LEARNED_TOAST
 		InsertScrapItems()
+		collectgarbage()
 	end)
 end

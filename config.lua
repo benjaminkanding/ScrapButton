@@ -1,9 +1,3 @@
----------------------------------------------------
--- SETUP
--- TODO:
--- Ignore items in equipment sets
--- Azerite Armor filter?
----------------------------------------------------
 local _, ns		= ... -- namespace
 ns.Config		= {} -- add config to the namespace
 local Config	= ns.Config

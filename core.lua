@@ -136,7 +136,7 @@ local function InsertScrapItems()
 		if not IsBagBlacklisted(bag) then
 			for slot = 1, GetContainerNumSlots(bag) do
 				local item = GetContainerItemLink(bag, slot)
-				if item ~= nil then
+				if item and strsub(item, 13, 16) == "item" then
 					itemLocation:SetBagAndSlot(bag, slot)
 					local azerite_item = IsAzeriteItem(itemLocation)
 					local scrappable, boe = ReadTooltip(item)

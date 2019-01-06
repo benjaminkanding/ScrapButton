@@ -55,17 +55,17 @@ local function ItemLvlComparison(equipped, itemlvl)
 	end
 	DebugPrint("Comparing Itemlvl: " .. tostring(itemlvl) .. " equipped: " .. tostring(equipped) .. " specific: " .. tostring(ScrappinDB.specificilvlbox))
 
-	local ItemLvlLessThanEquip, ItemLvlNotHigherThanSpecific = false
+	local ItemLvlLessThanEquip, ItemLvlLessThanSpecific = false
 	if itemlvl and equipped then
 		ItemLvlLessThanEquip = itemlvl < equipped
 	end
 	if itemlvl and ScrappinDB.specificilvlbox then
-		ItemLvlNotHigherThanSpecific = itemlvl < ScrappinDB.specificilvlbox
+		ItemLvlLessThanSpecific = itemlvl < tonumber(ScrappinDB.specificilvlbox)
 	end
 
 	--returns
 	if ScrappinDB.CheckButtons.Itemlvl and ScrappinDB.CheckButtons.specificilvl then
-		if ItemLvlLessThanEquip and ItemLvlNotHigherThanSpecific then
+		if ItemLvlLessThanEquip and ItemLvlLessThanSpecific then
 			return true
 		else
 			return false
@@ -73,7 +73,7 @@ local function ItemLvlComparison(equipped, itemlvl)
 	elseif ScrappinDB.CheckButtons.Itemlvl then
 		return ItemLvlLessThanEquip
 	elseif ScrappinDB.CheckButtons.specificilvl then
-		return ItemLvlNotHigherThanSpecific
+		return ItemLvlLessThanSpecific
 	end
 end
 
@@ -81,9 +81,8 @@ local function IsPartOfEquipmentSet(bag, slot)
 	if ScrappinDB.CheckButtons.equipmentsets then
 		local isInSet, _ = GetContainerItemEquipmentSetInfo(bag, slot)
 		return isInSet
-	else
-		return false
 	end
+	return false
 end
 
 local function IsAzeriteItem(itemLocation)
@@ -105,22 +104,24 @@ local function ReadTooltip(itemString)
 	local scrappable = false
 	local boe = false
 
-	if (itemString ~= nil) then
+	if itemString then
 		tooltipReader:SetHyperlink(itemString)
 		for i = tooltipReader:NumLines(), 1, -1 do
 			local line = tooltipReader.leftside[i]:GetText()
 			if line and line == "Scrappable" then
 				scrappable = true
+				break
 			end
 		end
 
 		if (ScrappinDB.CheckButtons.boe) then
 			local boe = false
-			for i = 2, 4 do
+			for i = 2, tooltipReader:NumLines() do
 				local t = tooltipReader.leftside[i]:GetText()
 				if t and t == "Binds when equipped" then
 					DebugPrint("Found BoE: " .. itemString)
 					boe = true
+					break
 				end
 			end
 			return scrappable, boe

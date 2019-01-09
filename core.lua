@@ -29,7 +29,6 @@ local function PositionScrapButton(self)
 	end
 end
 
---amazing tooltip function from Personal Loot Helper
 local function CreateEmptyTooltip()
     local tip = CreateFrame('GameTooltip')
 	local leftside = {}
@@ -53,7 +52,6 @@ local function ItemLvlComparison(equipped, itemlvl)
 	if (not ScrappinDB.CheckButtons.Itemlvl and not ScrappinDB.CheckButtons.specificilvl) then
 		return true
 	end
-	DebugPrint("Comparing Itemlvl: " .. tostring(itemlvl) .. " equipped: " .. tostring(equipped) .. " specific: " .. tostring(ScrappinDB.specificilvlbox))
 
 	local ItemLvlLessThanEquip, ItemLvlLessThanSpecific = false
 	if itemlvl and equipped then
@@ -132,7 +130,10 @@ local function ReadTooltip(itemString)
 end
 
 local function InsertScrapItems()
-	local _, equipped = GetAverageItemLevel()
+	local _, avgItemLevelEquipped, _ = GetAverageItemLevel()
+	DebugLogClear()
+	DebugLog("CUSTOM", "Players equipped item level: "..avgItemLevelEquipped)
+	DebugLog("SETTINGS", nil)
 	for bag = 0, 4 do
 		if not IsBagBlacklisted(bag) then
 			for slot = 1, GetContainerNumSlots(bag) do
@@ -143,13 +144,19 @@ local function InsertScrapItems()
 					local scrappable, boe = ReadTooltip(item)
 					local itemlvl, _, _ = GetDetailedItemLevelInfo(item) or 0
 					local part_of_set = IsPartOfEquipmentSet(bag, slot)
-					local itemCompare = ItemLvlComparison(equipped, itemlvl)
+					local itemCompare = ItemLvlComparison(avgItemLevelEquipped, itemlvl)
 					if (scrappable and itemCompare and not boe and not part_of_set and not azerite_item) then
 						ItemPrint(item, itemlvl)
 						UseContainerItem(bag, slot)
+					else
+						DebugLogItem(item, scrappable, itemCompare, boe, part_of_set, azerite_item)
 					end
+				elseif item then
+					DebugLog("CUSTOM", item.." invalid prefix: "..strsub(item, 13, 16))
 				end
 			end
+		else
+			DebugLog("CUSTOM", "Not iterating through bag "..bag.." as it is ignored.")
 		end
 	end
 end
@@ -157,12 +164,11 @@ end
 function Core:CreateScrapButton()
 	LoadAddOn("Blizzard_ScrappingMachineUI")
 	local scrapButton = CreateFrame("Button", "moetQOL_ScrapButton", ScrappingMachineFrame, "OptionsButtonTemplate")
-	PositionScrapButton(scrapButton)
-	scrapButton:SetText("Insert Scrap")
-	
 	local scrapCooldown = CreateFrame("Cooldown", "scrapButtonAntiSpam", scrapButton)
+	PositionScrapButton(scrapButton)
+	scrapButton:SetText("Fill")
 	scrapCooldown:SetAllPoints()
-
+	
 	scrapButton:SetScript("OnClick", function() 
 		local duration = scrapCooldown:GetCooldownDuration()
 		if duration ~= 0 then return end

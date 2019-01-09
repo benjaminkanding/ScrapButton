@@ -1,14 +1,36 @@
-local _, ns		= ... -- namespace
-ns.Config		= {} -- add config to the namespace
-local Config	= ns.Config
-_G.ScrappinDB	= ScrappinDB or {}
-Config.color	= "ff186aa7" -- blue
+local _, ns = ... -- namespace
+ns.Config = {} -- add config to the namespace
+local Config = ns.Config
+_G.ScrappinDB = ScrappinDB or {}
+Config.color = "ff186aa7" -- blue
 
 ---------------------------------------------------
 -- UI FUNCTIONS
 ---------------------------------------------------
---global function create UI
 do
+	--Interface Options
+	local panel = CreateFrame("FRAME")
+	panel.name = "ScrapButton"
+	panel.configbtn = CreateFrame("Button", "ScrapButton_Panel", panel, "OptionsButtonTemplate")
+	panel.configbtn:SetText("Config")
+	panel.configbtn:SetPoint("CENTER", panel, "TOP", 0, -100)
+	panel.configbtn:SetScript("OnClick", function()
+		if InterfaceOptionsFrame:IsShown() then
+			InterfaceOptionsFrame:Hide()	
+		end
+		Config:ToggleScrappinFrame()
+	end)
+	panel.debugbtn = CreateFrame("Button", "ScrapButton_Panel", panel, "OptionsButtonTemplate")
+	panel.debugbtn:SetText("Debug Log")
+	panel.debugbtn:SetPoint("CENTER", panel, "TOP", 0, -150)
+	panel.debugbtn:SetScript("OnClick", function()
+		if InterfaceOptionsFrame:IsShown() then
+			InterfaceOptionsFrame:Hide()
+		end
+		Config:ToggleScrappinDebug()
+	end)
+	InterfaceOptions_AddCategory(panel)
+
 	--Frame
 	_G.ScrappinUI = CreateFrame("Frame", "ScrappinUI_Frame", UIParent, "TranslucentFrameTemplate")
 	ScrappinUI:SetSize(600, 300)
@@ -21,7 +43,48 @@ do
 	ScrappinUI:RegisterForDrag("LeftButton")
 	ScrappinUI:SetScript("OnDragStart", ScrappinUI.StartMoving)
 	ScrappinUI:SetScript("OnDragStop", ScrappinUI.StopMovingOrSizing)
+	tinsert(UISpecialFrames, ScrappinUI:GetName())
 
+	--debug frame
+	_G.ScrappinDebug = CreateFrame("Frame", "ScrappinUI_Debug", UIParent, "TranslucentFrameTemplate")
+	ScrappinDebug:SetSize(700, 400)
+	ScrappinDebug:SetPoint("CENTER")
+	ScrappinDebug.title = ScrappinDebug:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	ScrappinDebug.title:SetPoint("LEFT", ScrappinUI_Debug, "TOPLEFT", 25, -25)
+	ScrappinDebug.title:SetText("ScrapDebug - If a setting is Disabled, the value should be false to be inserted. Not Scrappable/ItemCompare")
+	ScrappinDebug.exitbtn = CreateFrame("Button", nil, ScrappinUI_Debug, "UIPanelCloseButton")
+	ScrappinDebug.exitbtn:SetPoint("CENTER", ScrappinUI_DebugTopRightCorner, "CENTER", -5, -5)
+	ScrappinDebug.exitbtn:SetScript("OnClick", function() Config.ToggleScrappinDebug() end)
+	tinsert(UISpecialFrames, ScrappinDebug:GetName())
+
+	--scroll
+	local ScrappinDebugScrollArea = CreateFrame("ScrollFrame", "ScrappinDebugScroll", ScrappinUI_Debug, "UIPanelScrollFrameTemplate")
+	ScrappinDebugScrollArea:SetPoint("TOPLEFT", ScrappinDebug.title, "BOTTOMLEFT", 8, -8)
+	ScrappinDebugScrollArea:SetPoint("BOTTOMRIGHT", ScrappinUI_Debug, "BOTTOMRIGHT", -33, 20)
+	
+	ScrappinDebug.body = CreateFrame("EditBox", nil, ScrappinUI_Debug)
+	ScrappinDebug.body:SetMultiLine(true)
+	ScrappinDebug.body:SetMaxLetters(99999)
+	ScrappinDebug.body:EnableMouse(false)
+	ScrappinDebug.body:SetAutoFocus(false)
+	ScrappinDebug.body:SetFontObject(ChatFontNormal)
+	--ScrappinDebug.body:SetFont('Fonts\\ARIALN.ttf', 13, 'THINOUTLINE')
+	ScrappinDebug.body:SetWidth(1000)
+	ScrappinDebug.body:SetHeight(575)
+	ScrappinDebug.body:Show()
+
+	ScrappinDebugScrollArea:SetScrollChild(ScrappinDebug.body)
+
+	local ScrappinDebugBackdrop = CreateFrame("Frame", nil, ScrappinUI_Debug)
+	ScrappinDebugBackdrop:SetBackdrop({bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+		tile = true, tileSize = 16, edgeSize = 16,
+		insets = {left = 3, right = 3, top = 5, bottom = 3}}
+	)
+	ScrappinDebugBackdrop:SetBackdropColor(0,0,0,1)
+	ScrappinDebugBackdrop:SetPoint("TOPLEFT", ScrappinDebug.title, "BOTTOMLEFT", -5, 0)
+	ScrappinDebugBackdrop:SetPoint("BOTTOMRIGHT", ScrappinUI_Debug, "BOTTOMRIGHT", -27, 5)
+	
 	--Text
 	ScrappinUI.dev = ScrappinUI:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	ScrappinUI.dev:SetPoint("CENTER", ScrappinUI_Frame, "BOTTOM", 0, 40)
@@ -44,7 +107,7 @@ do
 	ScrappinUI.checkbtn1:SetScript("OnClick", function(self) 
 		PlaySound(856)
 		ScrappinDB.CheckButtons.Itemlvl = self:GetChecked()
-		DebugPrint("btn1 value is now: " .. tostring(ScrappinDB.CheckButtons.Itemlvl))
+		DebugLog("CUSTOM", ScrappinUI.checkbtn1.text:GetText() .. tostring(ScrappinDB.CheckButtons.Itemlvl))
 	end)
 
 	--bottom
@@ -54,7 +117,7 @@ do
 	ScrappinUI.checkbtn2:SetScript("OnClick", function(self) 
 		PlaySound(856)
 		ScrappinDB.CheckButtons.Bottom = self:GetChecked()
-		DebugPrint("btn2 value is now: " .. tostring(ScrappinDB.CheckButtons.Bottom))
+		DebugLog("CUSTOM", ScrappinUI.checkbtn2.text:GetText() .. tostring(ScrappinDB.CheckButtons.Bottom))
 	end)
 
 	--itemprint
@@ -64,7 +127,7 @@ do
 	ScrappinUI.checkbtn3:SetScript("OnClick", function(self) 
 		PlaySound(856)
 		ScrappinDB.CheckButtons.Itemprint = self:GetChecked()
-		DebugPrint("btn3 value is now: " .. tostring(ScrappinDB.CheckButtons.Itemprint))
+		DebugLog("CUSTOM", ScrappinUI.checkbtn3.text:GetText() .. tostring(ScrappinDB.CheckButtons.Itemprint))
 	end)
 
 	--BoE
@@ -74,7 +137,7 @@ do
 	ScrappinUI.checkbtn4:SetScript("OnClick", function(self)
 		PlaySound(856)
 		ScrappinDB.CheckButtons.boe = self:GetChecked()
-		DebugPrint("btn4 value is now: " .. tostring(ScrappinDB.CheckButtons.boe))
+		DebugLog("CUSTOM", ScrappinUI.checkbtn4.text:GetText()..tostring(ScrappinDB.CheckButtons.boe))
 	end)
 
 	--SpecificILvL
@@ -114,7 +177,7 @@ do
 			ScrappinUI.editbox:Disable()
 		end
 		ScrappinDB.CheckButtons.specificilvl = self:GetChecked()
-		DebugPrint("btn5 value is now: " .. tostring(ScrappinDB.CheckButtons.specificilvl))
+		DebugLog("CUSTOM", ScrappinUI.checkbtn5.text:GetText()..tostring(ScrappinDB.CheckButtons.specificilvl))
 	end)
 
 	--Equipment sets
@@ -124,7 +187,7 @@ do
 	ScrappinUI.checkbtn6:SetScript("OnClick", function(self)
 		PlaySound(856)
 		ScrappinDB.CheckButtons.equipmentsets = self:GetChecked()
-		DebugPrint("btn6 value is now: " .. tostring(ScrappinDB.CheckButtons.equipmentsets))
+		DebugLog("CUSTOM", ScrappinUI.checkbtn6.text:GetText() .. tostring(ScrappinDB.CheckButtons.equipmentsets))
 	end)
 
 	--Azerite Item
@@ -134,7 +197,7 @@ do
 	ScrappinUI.checkbtn7:SetScript("OnClick", function(self)
 		PlaySound(856)
 		ScrappinDB.CheckButtons.azerite = self:GetChecked()
-		DebugPrint("btn7 value is now: " .. tostring(ScrappinDB.CheckButtons.azerite))
+		DebugLog("CUSTOM", ScrappinUI.checkbtn7.text:GetText() .. tostring(ScrappinDB.CheckButtons.azerite))		
 	end)
 
 	-- Bags
@@ -144,7 +207,7 @@ do
 	ScrappinUI.checkbag0:SetScript("OnClick", function(self) 
 		PlaySound(856)
 		ScrappinDB.CheckButtons.Bag[0] = self:GetChecked()
-		DebugPrint("bag0 value is now: " .. tostring(ScrappinDB.CheckButtons.Bag[0]))
+		DebugLog("CUSTOM", ScrappinUI.checkbag0.text:GetText() .. tostring(ScrappinDB.CheckButtons.Bag[0]))
 	end)
 
 	ScrappinUI.checkbag1 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
@@ -153,7 +216,7 @@ do
 	ScrappinUI.checkbag1:SetScript("OnClick", function(self) 
 		PlaySound(856)
 		ScrappinDB.CheckButtons.Bag[1] = self:GetChecked()
-		DebugPrint("bag1 value is now: " .. tostring(ScrappinDB.CheckButtons.Bag[1]))
+		DebugLog("CUSTOM", ScrappinUI.checkbag1.text:GetText() .. tostring(ScrappinDB.CheckButtons.Bag[1]))
 	end)
 
 	ScrappinUI.checkbag2 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
@@ -162,7 +225,7 @@ do
 	ScrappinUI.checkbag2:SetScript("OnClick", function(self) 
 		PlaySound(856)
 		ScrappinDB.CheckButtons.Bag[2] = self:GetChecked()
-		DebugPrint("bag2 value is now: " .. tostring(ScrappinDB.CheckButtons.Bag[2]))
+		DebugLog("CUSTOM", ScrappinUI.checkbag2.text:GetText() .. tostring(ScrappinDB.CheckButtons.Bag[2]))
 	end)
 
 	ScrappinUI.checkbag3 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
@@ -171,7 +234,7 @@ do
 	ScrappinUI.checkbag3:SetScript("OnClick", function(self) 
 		PlaySound(856)
 		ScrappinDB.CheckButtons.Bag[3] = self:GetChecked()
-		DebugPrint("bag3 value is now: " .. tostring(ScrappinDB.CheckButtons.Bag[3]))
+		DebugLog("CUSTOM", ScrappinUI.checkbag3.text:GetText() .. tostring(ScrappinDB.CheckButtons.Bag[3]))
 	end)
 
 	ScrappinUI.checkbag4 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
@@ -180,9 +243,10 @@ do
 	ScrappinUI.checkbag4:SetScript("OnClick", function(self) 
 		PlaySound(856)
 		ScrappinDB.CheckButtons.Bag[4] = self:GetChecked()
-		DebugPrint("bag4 value is now: " .. tostring(ScrappinDB.CheckButtons.Bag[4]))
+		DebugLog("CUSTOM", ScrappinUI.checkbag4.text:GetText() .. tostring(ScrappinDB.CheckButtons.Bag[4]))
 	end)
 
+	ScrappinDebug:Hide()
 	ScrappinUI:Hide()
 end
 
@@ -200,7 +264,6 @@ function Config:UpdateCheckButtonStates()
 	ScrappinUI.checkbag3:SetChecked(ScrappinDB.CheckButtons.Bag[3])
 	ScrappinUI.checkbag4:SetChecked(ScrappinDB.CheckButtons.Bag[4])
 
-	--properly enable/disable the editbox
 	if ScrappinDB.CheckButtons.specificilvl then
 		ScrappinUI.editbox:Enable()
 	else
@@ -210,4 +273,8 @@ end
 
 function Config:ToggleScrappinFrame()
 	ScrappinUI:SetShown(not ScrappinUI:IsShown())
+end
+
+function Config:ToggleScrappinDebug()
+	ScrappinDebug:SetShown(not ScrappinDebug:IsShown())
 end

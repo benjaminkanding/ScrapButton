@@ -1,13 +1,12 @@
 ---------------------------------------------------
 -- SETUP
 ---------------------------------------------------
-local _, ns			= ... -- namespace
-local shortcut		= "/scrap"
-local addonVersion	= GetAddOnMetadata("ScrapButton", "Version")
-local welcomeMSG	= string.format("|c%sScrapButton|r loaded v%s.", ns.Config.color, addonVersion)
+local _, ns	= ... -- namespace
+local shortcut = "/scrap"
+local addonVersion = GetAddOnMetadata("ScrapButton", "Version")
+local welcomeMSG = string.format("|c%sScrapButton|r loaded v%s.", ns.Config.color, addonVersion)
 local defaultDB = {
-	DBversion = 5,
-	Debug = false,
+	DBversion = 6,
 	specificilvlbox = " ",
 	CheckButtons = {
 		Itemlvl = false,
@@ -27,9 +26,27 @@ local defaultDB = {
 	}
 }
 
-function DebugPrint(text)
-	if (ScrappinDB.Debug) then
-		print(string.format("|c%sScrapDebug|r: %s", ns.Config.color, tostring(text)))
+function DebugLog(mode, txt)
+	if mode == "CUSTOM" then
+		ScrappinDebug.body:Insert(tostring(txt).."\n")
+	elseif mode == "SETTINGS" then
+		for k, v in pairs(ScrappinDB.CheckButtons) do
+			ScrappinDebug.body:Insert("["..tostring(k)..": "..tostring(v).."]\n")
+		end
+	end	
+end
+
+function DebugLogClear()
+	ScrappinDebug.body:SetText("")
+end
+
+function DebugLogItem(i, s, ic, b, p, a)
+	if not s then
+		ScrappinDebug.body:Insert("Cannot insert "..i.." since it is not Scrappable.\n")
+	else
+		s, ic, b, p, a = tostring(s), tostring(ic), tostring(b), tostring(p), tostring(a)
+		ScrappinDebug.body:Insert("Skipping "..i.." with flags: \n")
+		ScrappinDebug.body:Insert(" > [Scrappable: "..s.."] [Item Compare: "..ic.."] [BoE: "..b.."] [Part of Set: "..p.."] [Azerite: "..a.."]\n")
 	end
 end
 
@@ -61,8 +78,7 @@ local commands = {
 	end,
 
 	["debug"] = function()
-		ScrappinDB.Debug = not ScrappinDB.Debug
-		DebugPrint(" is now " .. tostring(ScrappinDB.Debug))
+		ns.Config:ToggleScrappinDebug()
 	end,
 }
 

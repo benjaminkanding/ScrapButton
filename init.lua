@@ -27,6 +27,8 @@ local defaultDB = {
 }
 
 function DebugLog(mode, txt)
+	if not mode then return end
+
 	if mode == "CUSTOM" then
 		ScrappinDebug.body:Insert(tostring(txt).."\n")
 	elseif mode == "SETTINGS" then
@@ -57,7 +59,7 @@ local function CheckDatabaseKeysNil(database, default)
 	for key, value in pairs(default) do
 		if database[key] == nil then
 			database[key] = value
-		elseif (type(database[key]) == "table") then
+		elseif type(database[key]) == "table" then
 			CheckDatabaseKeysNil(database[key], default[key])
 		end
 	end
@@ -86,7 +88,6 @@ local function HandleSlashCommands(str)
 	if (#str == 0) then -- player entered /scrap
 		commands.scrap()
 	end
-	-- figure out what the player wrote
 	-- insert each word into a table and remove any spaces
 	local args = {}
 	local path = commands
@@ -103,11 +104,8 @@ local function HandleSlashCommands(str)
 			arg = arg:lower() -- make the command into lowercase
 			if (path[arg]) then
 				if (type(path[arg]) == "function") then
-					-- if we reached a function in command,
 					path[arg]()
-					--[[ save this if we want any extra arguments to be passed,
-						 example: /scrapper [thing] [on] (will pass "thing" + "on")
-						 path[arg](select(id + 1, unpack(args))) --]]
+					-- path[arg](select(id + 1, unpack(args)))
 					return
 				elseif (type(path[arg]) == "table") then
 					path = path[arg] -- enter found subtable

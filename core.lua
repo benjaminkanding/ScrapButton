@@ -9,18 +9,18 @@ local itemLocation = itemLocation or ItemLocation:CreateEmpty()
 ---------------------------------------------------
 -- HELPER FUNCTIONS
 ---------------------------------------------------
-local function IsBagBlacklisted(int)
-	return ScrappinDB.CheckButtons.Bag[int]
+local function IsBagBlacklisted(n)
+	return ScrappinDB.CheckButtons.Bag[n]
 end
 
 local function ItemPrint(text, ...)
-	if (ScrappinDB.CheckButtons.Itemprint) then
+	if ScrappinDB.CheckButtons.Itemprint then
 		print(string.format("|c%sScrap:|r: Inserting %s (%s)", ns.Config.color, text, ...))
 	end
 end
 
 local function PositionScrapButton(self)
-	if (ScrappinDB.CheckButtons.Bottom) then
+	if ScrappinDB.CheckButtons.Bottom then
 		self:ClearAllPoints()
 		self:SetPoint("CENTER", ScrappingMachineFrame, "BOTTOM", 0, 42)
 	else
@@ -30,7 +30,7 @@ local function PositionScrapButton(self)
 end
 
 local function CreateEmptyTooltip()
-    local tip = CreateFrame('GameTooltip')
+    local tip = CreateFrame("GameTooltip")
 	local leftside = {}
 	local rightside = {}
 	local L, R
@@ -53,14 +53,14 @@ local function ItemLvlComparison(equipped, itemlvl)
 		return true
 	end
 	
-	DebugLog("CUSTOM", " > Comparing [Itemlvl "..tostring(itemlvl).."] [equipped: "..tostring(equipped).."] [specific: ".. tostring(ScrappinDB.specificilvlbox).."]")
-
-	local ItemLvlLessThanEquip, ItemLvlLessThanSpecific = false
+	local ItemLvlLessThanEquip, ItemLvlLessThanSpecific = false, false
 	if itemlvl and equipped then
 		ItemLvlLessThanEquip = itemlvl < equipped
+		DebugLog("CUSTOM", " > Compared ["..tostring(itemlvl).."] < ["..tostring(equipped).."] = "..tostring(ItemLvlLessThanEquip))
 	end
 	if itemlvl and ScrappinDB.specificilvlbox then
 		ItemLvlLessThanSpecific = itemlvl < tonumber(ScrappinDB.specificilvlbox)
+		DebugLog("CUSTOM", " > Compared ["..tostring(itemlvl).."] < ["..tostring(ScrappinDB.specificilvlbox).."] = "..tostring(ItemLvlLessThanSpecific))
 	end
 
 	--returns
@@ -82,6 +82,7 @@ local function IsPartOfEquipmentSet(bag, slot)
 		local isInSet, _ = GetContainerItemEquipmentSetInfo(bag, slot)
 		return isInSet
 	end
+
 	return false
 end
 
@@ -90,6 +91,7 @@ local function IsAzeriteItem(itemLocation)
 		local isAzerite = C_AzeriteEmpoweredItem.IsAzeriteEmpoweredItem(itemLocation)
 		return isAzerite
 	end
+
 	return false
 end
 
@@ -116,11 +118,14 @@ local function ReadTooltip(itemString)
 
 		if (ScrappinDB.CheckButtons.boe) then
 			local boe = false
-			for i = 2, tooltipReader:NumLines() do
+			for i = 2, 4 do
 				local t = tooltipReader.leftside[i]:GetText()
-				if t and t == "Binds when equipped" then
-					boe = true
-					break
+				if t then
+					DebugLog("CUSTOM", t)
+					if t == "Binds when equipped" then
+						boe = true
+						break
+					end
 				end
 			end
 			return scrappable, boe
@@ -130,31 +135,39 @@ local function ReadTooltip(itemString)
 	return scrappable, false
 end
 
+local function ShouldInsert(item, bag, slot, equipped)
+	local scrappable, boe = ReadTooltip(item)
+	itemLocation:SetBagAndSlot(bag, slot)	
+
+	if scrappable then
+		local azerite_item = IsAzeriteItem(itemLocation)
+		local itemlvl, _, _ = GetDetailedItemLevelInfo(item) or 0
+		local part_of_set = IsPartOfEquipmentSet(bag, slot)
+		local itemCompare = ItemLvlComparison(equipped, itemlvl)
+		if (scrappable and itemCompare and not boe and not part_of_set and not azerite_item) then
+			ItemPrint(item, itemlvl)
+			return true
+		else
+			DebugLogItem(item, scrappable, itemCompare, boe, part_of_set, azerite_item)
+		end
+	else
+		DebugLogItem(item, scrappable)
+	end
+
+	return false
+end
+
 local function InsertScrapItems()
-	local _, avgItemLevelEquipped, _ = GetAverageItemLevel()
+	local _, avgEquipped, _ = GetAverageItemLevel()
 	DebugLogClear()
-	DebugLog("CUSTOM", "Players equipped item level: "..avgItemLevelEquipped)
 	DebugLog("SETTINGS", nil)
 	for bag = 0, 4 do
 		if not IsBagBlacklisted(bag) then
 			for slot = 1, GetContainerNumSlots(bag) do
 				local item = GetContainerItemLink(bag, slot)
 				if item and strsub(item, 13, 16) == "item" then
-					local scrappable, boe = ReadTooltip(item)
-					if scrappable then
-						itemLocation:SetBagAndSlot(bag, slot)
-						local azerite_item = IsAzeriteItem(itemLocation)
-						local itemlvl, _, _ = GetDetailedItemLevelInfo(item) or 0
-						local part_of_set = IsPartOfEquipmentSet(bag, slot)
-						local itemCompare = ItemLvlComparison(avgItemLevelEquipped, itemlvl)
-						if (scrappable and itemCompare and not boe and not part_of_set and not azerite_item) then
-							ItemPrint(item, itemlvl)
-							UseContainerItem(bag, slot)
-						else
-							DebugLogItem(item, scrappable, itemCompare, boe, part_of_set, azerite_item)
-						end
-					else
-						DebugLogItem(item, scrappable)
+					if ShouldInsert(item, bag, slot, avgEquipped) then
+						UseContainerItem(bag, slot)
 					end
 				elseif item then
 					DebugLog("CUSTOM", item.." invalid prefix: "..strsub(item, 13, 16))
@@ -171,21 +184,23 @@ function Core:CreateScrapButton()
 	local scrapButton = CreateFrame("Button", "moetQOL_ScrapButton", ScrappingMachineFrame, "OptionsButtonTemplate")
 	local scrapCooldown = CreateFrame("Cooldown", "scrapButtonAntiSpam", scrapButton)
 	PositionScrapButton(scrapButton)
-	scrapButton:SetText("Fill")
 	scrapCooldown:SetAllPoints()
+	scrapButton:SetText("Fill")
 	
 	scrapButton:SetScript("OnClick", function() 
 		local duration = scrapCooldown:GetCooldownDuration()
 		if duration ~= 0 then return end
 
-		if (UnitCastingInfo("player") ~= nil) then
+		if UnitCastingInfo("player") ~= nil then
 			print(string.format("|c%sScrap|r: You cannot insert items while actively scrapping, cancel your cast to refill.", ns.Config.color))
 			return
 		end
 
 		scrapCooldown:SetCooldown(GetTime(), 1)
-		PlaySound(73919) -- UI_PROFESSIONS_NEW_RECIPE_LEARNED_TOAST
+		C_ScrappingMachineUI.RemoveAllScrapItems()
+		ClearCursor()
 		InsertScrapItems()
+		PlaySound(115314)
 		collectgarbage()
 	end)
 end

@@ -52,6 +52,8 @@ local function ItemLvlComparison(equipped, itemlvl)
 	if (not ScrappinDB.CheckButtons.Itemlvl and not ScrappinDB.CheckButtons.specificilvl) then
 		return true
 	end
+	
+	DebugLog("CUSTOM", " > Comparing [Itemlvl "..tostring(itemlvl).."] [equipped: "..tostring(equipped).."] [specific: ".. tostring(ScrappinDB.specificilvlbox).."]")
 
 	local ItemLvlLessThanEquip, ItemLvlLessThanSpecific = false
 	if itemlvl and equipped then
@@ -117,7 +119,6 @@ local function ReadTooltip(itemString)
 			for i = 2, tooltipReader:NumLines() do
 				local t = tooltipReader.leftside[i]:GetText()
 				if t and t == "Binds when equipped" then
-					DebugPrint("Found BoE: " .. itemString)
 					boe = true
 					break
 				end
@@ -139,17 +140,21 @@ local function InsertScrapItems()
 			for slot = 1, GetContainerNumSlots(bag) do
 				local item = GetContainerItemLink(bag, slot)
 				if item and strsub(item, 13, 16) == "item" then
-					itemLocation:SetBagAndSlot(bag, slot)
-					local azerite_item = IsAzeriteItem(itemLocation)
 					local scrappable, boe = ReadTooltip(item)
-					local itemlvl, _, _ = GetDetailedItemLevelInfo(item) or 0
-					local part_of_set = IsPartOfEquipmentSet(bag, slot)
-					local itemCompare = ItemLvlComparison(avgItemLevelEquipped, itemlvl)
-					if (scrappable and itemCompare and not boe and not part_of_set and not azerite_item) then
-						ItemPrint(item, itemlvl)
-						UseContainerItem(bag, slot)
+					if scrappable then
+						itemLocation:SetBagAndSlot(bag, slot)
+						local azerite_item = IsAzeriteItem(itemLocation)
+						local itemlvl, _, _ = GetDetailedItemLevelInfo(item) or 0
+						local part_of_set = IsPartOfEquipmentSet(bag, slot)
+						local itemCompare = ItemLvlComparison(avgItemLevelEquipped, itemlvl)
+						if (scrappable and itemCompare and not boe and not part_of_set and not azerite_item) then
+							ItemPrint(item, itemlvl)
+							UseContainerItem(bag, slot)
+						else
+							DebugLogItem(item, scrappable, itemCompare, boe, part_of_set, azerite_item)
+						end
 					else
-						DebugLogItem(item, scrappable, itemCompare, boe, part_of_set, azerite_item)
+						DebugLogItem(item, scrappable)
 					end
 				elseif item then
 					DebugLog("CUSTOM", item.." invalid prefix: "..strsub(item, 13, 16))

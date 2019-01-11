@@ -51,7 +51,7 @@ do
 	ScrappinDebug:SetPoint("CENTER")
 	ScrappinDebug.title = ScrappinDebug:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	ScrappinDebug.title:SetPoint("LEFT", ScrappinUI_Debug, "TOPLEFT", 25, -25)
-	ScrappinDebug.title:SetText("ScrapDebug - If a setting is Disabled, the value should be false to be inserted. Not Scrappable/ItemCompare")
+	ScrappinDebug.title:SetText("ScrapDebug - Settings that Ignore should be false to be inserted.")
 	ScrappinDebug.exitbtn = CreateFrame("Button", nil, ScrappinUI_Debug, "UIPanelCloseButton")
 	ScrappinDebug.exitbtn:SetPoint("CENTER", ScrappinUI_DebugTopRightCorner, "CENTER", -5, -5)
 	ScrappinDebug.exitbtn:SetScript("OnClick", function() Config.ToggleScrappinDebug() end)

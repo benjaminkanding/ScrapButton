@@ -4,7 +4,6 @@
 local _, ns	= ... -- namespace
 local shortcut = "/scrap"
 local addonVersion = GetAddOnMetadata("ScrapButton", "Version")
-local welcomeMSG = string.format("|c%sScrapButton|r loaded v%s.", ns.Config.color, addonVersion)
 local defaultDB = {
 	DBversion = 6,
 	specificilvlbox = " ",
@@ -132,9 +131,6 @@ function ns:Init(event, name)
 	ns.Config.UpdateCheckButtonStates()
 
 	ns.Core.CreateScrapButton()
-
-	print(welcomeMSG)
-	print(string.format("%s to open config.", shortcut))
 end
 
 local addonloadedFrame = CreateFrame("Frame")

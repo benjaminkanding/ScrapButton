@@ -49,7 +49,7 @@ local function CreateEmptyTooltip()
 end
 
 local function ItemLvlComparison(equipped, itemlvl)
-	if (not ScrappinDB.CheckButtons.Itemlvl and not ScrappinDB.CheckButtons.specificilvl) then
+	if not ScrappinDB.CheckButtons.Itemlvl and not ScrappinDB.CheckButtons.specificilvl then
 		return true
 	end
 	
@@ -116,12 +116,11 @@ local function ReadTooltip(itemString)
 			end
 		end
 
-		if (ScrappinDB.CheckButtons.boe) then
+		if ScrappinDB.CheckButtons.boe then
 			local boe = false
 			for i = 2, 4 do
 				local t = tooltipReader.leftside[i]:GetText()
 				if t then
-					DebugLog("CUSTOM", t)
 					if t == "Binds when equipped" then
 						boe = true
 						break

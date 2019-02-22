@@ -89,6 +89,17 @@ do
 	ScrappinUI.dev = ScrappinUI:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	ScrappinUI.dev:SetPoint("CENTER", ScrappinUI_Frame, "BOTTOM", 0, 40)
 	ScrappinUI.dev:SetText(string.format("Version: |c%s%s|r", ns.Config.color, GetAddOnMetadata("ScrapButton", "Version")))
+	
+	ScrappinUI.debugbtn = CreateFrame("Button", "ScrapButton_DebugButton", ScrappinUI_Frame, "OptionsButtonTemplate")
+	ScrappinUI.debugbtn:SetText("Debug Log")
+	ScrappinUI.debugbtn:SetPoint("CENTER", ScrappinUI_Frame, "BOTTOMRIGHT", -60, 25)
+	ScrappinUI.debugbtn:SetScript("OnClick", function()
+		if ScrappinUI_Frame:IsShown() then
+			Config:ToggleScrappinFrame()
+		end	
+		
+		Config:ToggleScrappinDebug()
+	end)
 
 	ScrappinUI.bagHeader = ScrappinUI:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	ScrappinUI.bagHeader:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 85, -160)

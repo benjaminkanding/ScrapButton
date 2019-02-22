@@ -84,7 +84,7 @@ local commands = {
 }
 
 local function HandleSlashCommands(str)
-	if (#str == 0) then -- player entered /scrap
+	if #str == 0 then -- player entered /scrap
 		commands.scrap()
 	end
 	-- insert each word into a table and remove any spaces
@@ -92,21 +92,21 @@ local function HandleSlashCommands(str)
 	local path = commands
 
 	for _, arg in ipairs({ string.split(' ', str) }) do
-		if (#arg > 0) then
+		if #arg > 0 then
 			table.insert(args, arg) -- args is now a table with each word
 		end
 	end
 
 	-- iterate through commands until we find the correct one
 	for id, arg in ipairs(args) do
-		if (#arg > 0) then
+		if #arg > 0 then
 			arg = arg:lower() -- make the command into lowercase
-			if (path[arg]) then
-				if (type(path[arg]) == "function") then
+			if path[arg] then
+				if type(path[arg]) == "function" then
 					path[arg]()
 					-- path[arg](select(id + 1, unpack(args)))
 					return
-				elseif (type(path[arg]) == "table") then
+				elseif type(path[arg]) == "table" then
 					path = path[arg] -- enter found subtable
 				end
 			else
@@ -121,7 +121,7 @@ end
 -- INIT
 ---------------------------------------------------
 function ns:Init(event, name)
-	if (name ~= "ScrapButton") then return end
+	if name ~= "ScrapButton" then return end
 
 	SLASH_ScrapButton1 = shortcut
 	SLASH_ScrapButton2 = "/scrapbutton"

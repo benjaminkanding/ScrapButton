@@ -14,8 +14,6 @@ local L_Scrappable = {
 	esES = "Aprovechable",
 	itIT = "Riciclabile",
 	ptBR = "Sucateável",
-	ruRU = "",
-	
 }
 
 local L_BoE = {
@@ -26,7 +24,6 @@ local L_BoE = {
 	esES = "Se liga al equiparlo",
 	itIT = "Si vincola all'equipagiamento",
 	ptBR = "Vincula-se quando equipado",
-	ruRU = "",
 }
 
 ---------------------------------------------------
@@ -143,11 +140,9 @@ local function ReadTooltip(itemString)
 			local boe = false
 			for i = 2, 4 do
 				local t = tooltipReader.leftside[i]:GetText()
-				if t then
-					if t == L_BoE[Locale] then
-						boe = true
-						break
-					end
+				if t and t == L_BoE[Locale] then
+					boe = true
+					break
 				end
 			end
 			return scrappable, boe

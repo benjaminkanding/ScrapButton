@@ -5,6 +5,29 @@ local _, ns	= ... -- namespace
 ns.Core	= {} -- add the core to the namespace
 local Core = ns.Core
 local itemLocation = itemLocation or ItemLocation:CreateEmpty()
+local Locale = GetLocale()
+local L_Scrappable = {
+	enGB = "Scrappable",
+	enUS = "Scrappable",
+	deDE = "Verschrottbar",
+	frFR = "Recyclable",
+	esES = "Aprovechable",
+	itIT = "Riciclabile",
+	ptBR = "Sucateável",
+	ruRU = "",
+	
+}
+
+local L_BoE = {
+	enGB = "Binds when Equipped",
+	enUS = "Binds when Equipped",
+	deDE = "Seelengebunden wenn ausgrerüstet",
+	frFR = "Lié quand équipé",
+	esES = "Se liga al equiparlo",
+	itIT = "Si vincola all'equipagiamento",
+	ptBR = "Vincula-se quando equipado",
+	ruRU = "",
+}
 
 ---------------------------------------------------
 -- HELPER FUNCTIONS
@@ -110,7 +133,7 @@ local function ReadTooltip(itemString)
 		tooltipReader:SetHyperlink(itemString)
 		for i = tooltipReader:NumLines(), 1, -1 do
 			local line = tooltipReader.leftside[i]:GetText()
-			if line and line == "Scrappable" then
+			if line and line == L_Scrappable[Locale] then
 				scrappable = true
 				break
 			end
@@ -121,7 +144,7 @@ local function ReadTooltip(itemString)
 			for i = 2, 4 do
 				local t = tooltipReader.leftside[i]:GetText()
 				if t then
-					if t == "Binds when equipped" then
+					if t == L_BoE[Locale] then
 						boe = true
 						break
 					end

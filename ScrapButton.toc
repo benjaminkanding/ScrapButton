@@ -1,9 +1,9 @@
-## Interface: 80100
+## Interface: 80205
 
 ## Title: ScrapButton
 ## Author: moet
 
-## Version: 2.3
+## Version: 2.4
 ## Notes: Adds a button to fill scrapping machine.
 ## SavedVariables: ScrappinDB
 

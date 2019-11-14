@@ -14,6 +14,7 @@ local L_Scrappable = {
 	esES = "Aprovechable",
 	itIT = "Riciclabile",
 	ptBR = "Sucateável",
+	ruRU = "Можно утилизировать",
 }
 
 local L_BoE = {
@@ -24,6 +25,7 @@ local L_BoE = {
 	esES = "Se liga al equiparlo",
 	itIT = "Si vincola all'equipagiamento",
 	ptBR = "Vincula-se quando equipado",
+	ruRU = "Становится персональным при надевании",
 }
 
 ---------------------------------------------------

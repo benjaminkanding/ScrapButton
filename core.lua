@@ -117,14 +117,22 @@ local function IsAzeriteItem(itemLocation)
 	return false
 end
 
+local function IsCorruptedItem(itemLocation)
+	if ScrappinDB.CheckButtons.corrupted then
+		local isCorrupted = C_Item.IsItemCorrupted(itemLocation)
+		return isCorrupted
+	end
+
+	return false
+end
 
 ---------------------------------------------------
 -- SCRAPPING FUNCTIONS
 ---------------------------------------------------
 local function ReadTooltip(itemString)
-	local tooltipReader = tooltipReader or CreateEmptyTooltip()
-	tooltipReader:SetOwner(WorldFrame, "ANCHOR_NONE")
+	tooltipReader:Hide()
 	tooltipReader:ClearLines()
+	tooltipReader:SetOwner(WorldFrame, "ANCHOR_NONE")
 	local scrappable = false
 	local boe = false
 
@@ -160,14 +168,15 @@ local function ShouldInsert(item, bag, slot, equipped)
 
 	if scrappable then
 		local azerite_item = IsAzeriteItem(itemLocation)
+		local corrupted_item = IsCorruptedItem(itemLocation)
 		local itemlvl, _, _ = GetDetailedItemLevelInfo(item) or 0
 		local part_of_set = IsPartOfEquipmentSet(bag, slot)
 		local itemCompare = ItemLvlComparison(equipped, itemlvl)
-		if (scrappable and itemCompare and not boe and not part_of_set and not azerite_item) then
+		if (scrappable and itemCompare and not boe and not part_of_set and not azerite_item and not corrupted_item) then
 			ItemPrint(item, itemlvl)
 			return true
 		else
-			DebugLogItem(item, scrappable, itemCompare, boe, part_of_set, azerite_item)
+			DebugLogItem(item, scrappable, itemCompare, boe, part_of_set, azerite_item, corrupted_item)
 		end
 	else
 		DebugLogItem(item, scrappable)
@@ -199,12 +208,15 @@ local function InsertScrapItems()
 end
 
 function Core:CreateScrapButton()
-	LoadAddOn("Blizzard_ScrappingMachineUI")
+	local loaded = IsAddOnLoaded("Blizzard_ScrappingMachineUI")
+	if loaded ~= 1 then LoadAddOn("Blizzard_ScrappingMachineUI") end
 	local scrapButton = CreateFrame("Button", "moetQOL_ScrapButton", ScrappingMachineFrame, "OptionsButtonTemplate")
 	local scrapCooldown = CreateFrame("Cooldown", "scrapButtonAntiSpam", scrapButton)
 	PositionScrapButton(scrapButton)
 	scrapCooldown:SetAllPoints()
 	scrapButton:SetText("Fill")
+
+	tooltipReader = CreateEmptyTooltip()
 	
 	scrapButton:SetScript("OnClick", function() 
 		local duration = scrapCooldown:GetCooldownDuration()
@@ -217,9 +229,8 @@ function Core:CreateScrapButton()
 
 		scrapCooldown:SetCooldown(GetTime(), 1)
 		C_ScrappingMachineUI.RemoveAllScrapItems()
-		ClearCursor()
 		InsertScrapItems()
 		PlaySound(115314)
-		collectgarbage()
+		collectgarbage("collect")
 	end)
 end

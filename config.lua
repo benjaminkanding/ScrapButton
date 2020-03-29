@@ -1,13 +1,13 @@
 local _, ns = ... -- namespace
 ns.Config = {} -- add config to the namespace
 local Config = ns.Config
-_G.ScrappinDB = ScrappinDB or {}
+ScrappinDB = ScrappinDB or {}
 Config.color = "ff186aa7" -- blue
 
 ---------------------------------------------------
 -- UI FUNCTIONS
 ---------------------------------------------------
-do
+function Config:SetupFrames()
 	--Interface Options
 	local panel = CreateFrame("FRAME")
 	panel.name = "ScrapButton"
@@ -32,7 +32,7 @@ do
 	InterfaceOptions_AddCategory(panel)
 
 	--Frame
-	_G.ScrappinUI = CreateFrame("Frame", "ScrappinUI_Frame", UIParent, "TranslucentFrameTemplate")
+	ScrappinUI = CreateFrame("Frame", "ScrappinUI_Frame", UIParent, "TranslucentFrameTemplate")
 	ScrappinUI:SetSize(600, 300)
 	ScrappinUI:SetPoint("CENTER")
 	ScrappinUI.title = ScrappinUI:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -46,7 +46,7 @@ do
 	tinsert(UISpecialFrames, ScrappinUI:GetName())
 
 	--debug frame
-	_G.ScrappinDebug = CreateFrame("Frame", "ScrappinUI_Debug", UIParent, "TranslucentFrameTemplate")
+	ScrappinDebug = CreateFrame("Frame", "ScrappinUI_Debug", UIParent, "TranslucentFrameTemplate")
 	ScrappinDebug:SetSize(700, 400)
 	ScrappinDebug:SetPoint("CENTER")
 	ScrappinDebug.title = ScrappinDebug:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -211,6 +211,16 @@ do
 		DebugLog("CUSTOM", ScrappinUI.checkbtn7.text:GetText() .. tostring(ScrappinDB.CheckButtons.azerite))		
 	end)
 
+	--Corrupted Item
+	ScrappinUI.checkbtn8 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
+	ScrappinUI.checkbtn8:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 340, -130)
+	ScrappinUI.checkbtn8.text:SetText("Ignore Corrupted Items")
+	ScrappinUI.checkbtn8:SetScript("OnClick", function(self)
+		PlaySound(856)
+		ScrappinDB.CheckButtons.corrupted = self:GetChecked()
+		DebugLog("CUSTOM", ScrappinUI.checkbtn8.text:GetText() .. tostring(ScrappinDB.CheckButtons.corrupted))		
+	end)
+
 	-- Bags
 	ScrappinUI.checkbag0 = CreateFrame("CheckButton", nil, ScrappinUI_Frame, "UICheckButtonTemplate")
 	ScrappinUI.checkbag0:SetPoint("CENTER", ScrappinUI_Frame, "TOPLEFT", 40, -190)
@@ -269,6 +279,7 @@ function Config:UpdateCheckButtonStates()
 	ScrappinUI.checkbtn5:SetChecked(ScrappinDB.CheckButtons.specificilvl)
 	ScrappinUI.checkbtn6:SetChecked(ScrappinDB.CheckButtons.equipmentsets)
 	ScrappinUI.checkbtn7:SetChecked(ScrappinDB.CheckButtons.azerite)
+	ScrappinUI.checkbtn8:SetChecked(ScrappinDB.CheckButtons.corrupted)
 	ScrappinUI.checkbag0:SetChecked(ScrappinDB.CheckButtons.Bag[0])
 	ScrappinUI.checkbag1:SetChecked(ScrappinDB.CheckButtons.Bag[1])
 	ScrappinUI.checkbag2:SetChecked(ScrappinDB.CheckButtons.Bag[2])

@@ -5,7 +5,7 @@ local _, ns	= ... -- namespace
 local shortcut = "/scrap"
 local addonVersion = GetAddOnMetadata("ScrapButton", "Version")
 local defaultDB = {
-	DBversion = 6,
+	DBversion = 7,
 	specificilvlbox = " ",
 	CheckButtons = {
 		Itemlvl = false,
@@ -15,6 +15,7 @@ local defaultDB = {
 		specificilvl = false,
 		equipmentsets = false,
 		azerite = false,
+		corrupted = false,
 		Bag = {
 			[0] = false,
 			[1] = false,
@@ -41,13 +42,13 @@ function DebugLogClear()
 	ScrappinDebug.body:SetText("")
 end
 
-function DebugLogItem(i, s, ic, b, p, a)
+function DebugLogItem(i, s, ic, b, p, a, c)
 	if not s then
 		ScrappinDebug.body:Insert("Cannot insert "..i.." since it is not Scrappable.\n")
 	else
-		s, ic, b, p, a = tostring(s), tostring(ic), tostring(b), tostring(p), tostring(a)
+		s, ic, b, p, a, c = tostring(s), tostring(ic), tostring(b), tostring(p), tostring(a), tostring(c)
 		ScrappinDebug.body:Insert("Skipping "..i.." with flags: \n")
-		ScrappinDebug.body:Insert(" > [Scrappable: "..s.."] [Item Compare: "..ic.."] [BoE: "..b.."] [Part of Set: "..p.."] [Azerite: "..a.."]\n")
+		ScrappinDebug.body:Insert(" > [Scrappable: "..s.."] [Compare: "..ic.."] [BoE: "..b.."] [Set: "..p.."] [Azerite: "..a.."] [Corrupted: "..c.."]\n")
 	end
 end
 
@@ -126,7 +127,8 @@ function ns:Init(event, name)
 	SLASH_ScrapButton1 = shortcut
 	SLASH_ScrapButton2 = "/scrapbutton"
 	SlashCmdList.ScrapButton = HandleSlashCommands
-
+	
+	ns.Config.SetupFrames()
 	CheckDatabaseKeysNil(ScrappinDB, defaultDB)
 	ns.Config.UpdateCheckButtonStates()
 
